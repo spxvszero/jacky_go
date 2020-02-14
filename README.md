@@ -1,2 +1,53 @@
 # jacky_go
-a go project for my server
+a go project for easy setup my server
+
+
+## Usage
+
+* build `go_build` file
+* run `./go_build --config=xxx.json` or run `./go_build` if json file is in same path.
+
+```
+//json config format, use it with no descriptions in this file.
+  {
+	"port":10000,
+	"Download_config":{
+		"download_dir_info_url_path":"/download/json",
+		"download_dir_path":"/Users/username/Desktop/goTest,/Users/username/Desktop/test",
+		"use_default_page": true,
+		"page_url_path": "/download",
+		"page_file_path": ""
+	},
+	"Upload_config":{
+		"upload_url_path":"/upload/interface",
+		"save_dir_path":"/Users/username/Desktop/goTest",
+		"max_size":1000,	//size MB
+		"use_default_page": true,
+		"page_url_path": "/upload",
+		"page_file_path": ""
+	},
+	//this routes is simple http request
+	"routes":[
+		{
+			"method":"get",
+			"path":"/json",
+			"json_body":"{\"oh\":\"no!!\"}"
+		}
+	],
+	//quick build sock5 server , auth is not required
+	"socks5":{
+		"protocol": "tcp",
+		"addr": "127.0.0.1:12121",
+		"auth": {
+			"usr":"pwd"
+		}
+	}
+}
+```
+
+##Example
+
+You can see this in my temp link : [QAQ](http://199.187.125.84:3900/download).
+
+WebPage is Embed in go project, source in : [WebSouce](https://github.com/spxvszero/jacky_go_web_source).
+

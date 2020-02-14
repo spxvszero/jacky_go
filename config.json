@@ -1,0 +1,32 @@
+{
+	"port":10000,
+	"Download_config":{
+		"download_dir_info_url_path":"/download/json",
+		"download_dir_path":"/Users/username/Desktop/goTest,/Users/username/Desktop/test",
+		"use_default_page": true,
+		"page_url_path": "/download",
+		"page_file_path": ""
+	},
+	"Upload_config":{
+		"upload_url_path":"/upload/interface",
+		"save_dir_path":"/Users/username/Desktop/goTest",
+		"max_size":1000,
+		"use_default_page": true,
+		"page_url_path": "/upload",
+		"page_file_path": ""
+	},
+	"routes":[
+		{
+			"method":"get",
+			"path":"/json",
+			"json_body":"{\"oh\":\"no!!\"}"
+		}
+	],
+	"socks5":{
+		"protocol": "tcp",
+		"addr": "127.0.0.1:12121",
+		"auth": {
+			"usr":"pwd"
+		}
+	}
+}
