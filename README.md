@@ -54,7 +54,7 @@ curl -O -L https://raw.githubusercontent.com/spxvszero/jacky_go/master/go_server
 
 ## Example
 
-You can see this in my temp link : [QAQ](http://199.187.125.84:3900/download).
+You can see this in my temp link : No More.
 
 WebPage is Embed in go project, source in : [WebSouce](https://github.com/spxvszero/jacky_go_web_source).
 
