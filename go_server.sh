@@ -8,7 +8,17 @@ configFile="config.json"
 systemdServiceFile="/usr/lib/systemd/system/${serverName}.service"
 firewallServiceXML="/usr/lib/firewalld/services/${serverName}.xml"
 
+port=""
+socksPort=""
+
 function addSystemdService(){
+
+	if ! command -v systemctl &> /dev/null
+	then
+	    echo "systemctl command could not be found."
+	    exit
+	fi
+
 	serviceFile="[Unit]
 	\nDescription=${serverName}
 	\nAfter=network-online.target
@@ -28,6 +38,13 @@ function addSystemdService(){
 }
 
 function removeSystemdService(){
+
+	if ! command -v systemctl &> /dev/null
+	then
+	    echo "systemctl command could not be found."
+	    exit
+	fi
+
 	systemctl stop ${serverName}
 	systemctl disable ${serverName}
 
@@ -41,12 +58,21 @@ function removeSystemdService(){
 
 
 function addFirewallService(){
+
+
+	if ! command -v firewall-cmd &> /dev/null
+	then
+	    echo "firewalld command could not be found."
+	    exit
+	fi
+
+
 	firewallService="<?xml version=\"1.0\" encoding=\"utf-8\"?>
 \n<service>
 \n  <short>${serverName}</short>
 \n  <description>This server is made for custom services, looking more with site : https://github.com/spxvszero/jacky_go</description>
-\n  <port protocol=\"tcp\" port=\"8900\"/>
-\n  <port protocol=\"tcp\" port=\"7777\"/>
+\n  <port protocol=\"tcp\" port=\"${port}\"/>
+\n  <port protocol=\"tcp\" port=\"${socksPort}\"/>
 \n</service>"
 	
 	echo -e ${firewallService} > ${firewallServiceXML}
@@ -58,6 +84,13 @@ function addFirewallService(){
 }
 
 function removeFirewallService(){
+
+	if ! command -v firewall-cmd &> /dev/null
+	then
+	    echo "firewalld command could not be found."
+	    exit
+	fi
+
 	firewall-cmd --remove-service=${serverName} --permanent
 
 	if [[ -e ${firewallServiceXML} ]]; then
@@ -73,13 +106,44 @@ function installServer(){
 	#check if exist
 	if [[ -e ${serverName} ]]; then
 		#statements
-		echo "jacky_go File exist, skip download..."
+		echo "${serverName} File exist, skip download..."
 	else
-		curl -o ${serverName} -L ${latestURL}
+
+		if command -v curl &> /dev/null;then
+		    curl -o ${serverName} -L ${latestURL}
+		    
+		elif command -v wget &> /dev/null; then
+			wget -O ${serverName} ${latestURL}
+
+		else
+			echo "Download Failed! Try Download yourself : ${latestURL}"
+			echo "And retry this script."
+			exit
+		fi
+
+		
 	fi
 
 	chmod +x ${serverName}
 	./${serverName} --generate config.json
+
+	#change port in config.json
+	if [[ -n ${port} ]]; then
+		#statements
+		sed -i 's/"port": 8900/"port": ${port}/' config.json
+	else
+		port="8900"
+	fi
+
+	if [[ -n ${socksPort} ]]; then
+		#statements
+		sed -i 's/"addr": "127.0.0.1:7777"/"addr": "${socksPort}"/' config.json
+		socksPort=`echo ${socksPort}|awk -F ":" '{print $2}'`
+	else
+		socksPort="7777"
+	fi
+	
+
 	mkdir download
 
 	addSystemdService
@@ -105,7 +169,24 @@ function welcomeInfo(){
 	echo ""
 	printf "I want to : "
 	read input
+
+
 	if [[ ${input} == "1" ]]; then
+
+		echo ""
+		echo ""
+		echo "Wanna change port ? Default listen on 8900"
+		printf "Change Port (empty for default): "
+		read port
+
+		echo ""
+		echo ""
+		echo "Wanna open socks ? Default listen on 127.0.0.1:7777"
+		printf "Change socks port (empty for default): "
+		read socksPort
+
+		echo "OK , Ready For Install."
+
 		#statement
 		installServer
 	elif [[ ${input} == "2" ]]; then
