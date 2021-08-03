@@ -10,6 +10,7 @@ firewallServiceXML="/usr/lib/firewalld/services/${serverName}.xml"
 
 port=""
 socksPort=""
+downloadDir=""
 
 function addSystemdService(){
 
@@ -130,26 +131,58 @@ function installServer(){
 	#change port in config.json
 	if [[ -n ${port} ]]; then
 		#statements
-		sed -i 's/"port": 8900/"port": ${port}/' config.json
+		sed -i "s/\"port\": 8900/\"port\": ${port}/" config.json
 	else
 		port="8900"
 	fi
 
+	#socks5 port
 	if [[ -n ${socksPort} ]]; then
 		#statements
-		sed -i 's/"addr": "127.0.0.1:7777"/"addr": "${socksPort}"/' config.json
+		sed -i "s/\"addr\": \"127.0.0.1:7777\"/\"addr\": \"${socksPort}\"/" config.json
 		socksPort=`echo ${socksPort}|awk -F ":" '{print $2}'`
 	else
 		socksPort="7777"
 	fi
 	
+	#download dir
+	if [[ -n ${downloadDir} ]]; then
+		#statements
+		sed -i "s|\"download_dir_path\": \"/root/download\"|\"download_dir_path\": \"${downloadDir}\"|" config.json
+		sed -i "s|\"dir_path\": \"/root/download\"|\"dir_path\": \"${downloadDir}\"|" config.json
+		sed -i "s|\"save_dir_path\": \"/root/download\"|\"save_dir_path\": \"${downloadDir}\"|" config.json
 
-	mkdir download
+	else
+		downloadDir="/root/download"
+	fi
+
+	mkdir ${downloadDir}
 
 	addSystemdService
 	addFirewallService
 
 	echo "Finished!"
+}
+
+function updateServer(){
+	#stop server
+	systemctl stop ${serverName}
+
+	#download && update
+	if command -v curl &> /dev/null;then
+	    curl -o ${serverName} -L ${latestURL}
+	    
+	elif command -v wget &> /dev/null; then
+		wget -O ${serverName} ${latestURL}
+
+	else
+		echo "Download Failed! Try Download yourself : ${latestURL}"
+		echo "And retry this script."
+		exit
+	fi
+
+	#restart server
+	systemctl start ${serverName}
 }
 
 function uninstallServer(){
@@ -165,7 +198,8 @@ function welcomeInfo(){
 	echo "Tell me what you want to do :"
 	echo ""
 	echo "	1. Install"
-	echo "	2. Uninstall"
+	echo "	2. Update"
+	echo "	3. Uninstall"
 	echo ""
 	printf "I want to : "
 	read input
@@ -185,12 +219,20 @@ function welcomeInfo(){
 		printf "Change socks port (empty for default): "
 		read socksPort
 
+		echo ""
+		echo ""
+		echo "Wanna change download dir ? Default is /root/download"
+		printf "Change download dir (empty for default): "
+		read downloadDir
+
 		echo "OK , Ready For Install."
 
 		#statement
 		installServer
 	elif [[ ${input} == "2" ]]; then
 		#statements
+		updateServer
+	elif [[ ${input} == "3" ]]; then
 		uninstallServer
 	else
 		echo "Not Funny, Bye!"
