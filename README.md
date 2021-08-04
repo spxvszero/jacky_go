@@ -4,7 +4,9 @@ a go project for easy setup my server, not open at all.
 ## Quick
 
 ```
-curl -O -L https://raw.githubusercontent.com/spxvszero/jacky_go/master/go_server.sh && chmod +x go_server.sh && sh go_server.sh
+#linux
+$ curl -O -L https://raw.githubusercontent.com/spxvszero/jacky_go/master/go_server.sh && chmod +x go_server.sh
+$ sh go_server.sh
 
 ```
 
