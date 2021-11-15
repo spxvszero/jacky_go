@@ -5,6 +5,7 @@ latestURL="https://github.com/spxvszero/jacky_go/releases/latest/download/go_exp
 curDir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 configFile="config.json"
 
+systemdServiceDir="/usr/lib/systemd/system"
 systemdServiceFile="/usr/lib/systemd/system/${serverName}.service"
 firewallServiceXML="/usr/lib/firewalld/services/${serverName}.xml"
 
@@ -29,6 +30,11 @@ function addSystemdService(){
 	\n\n[Install]
 	\nWantedBy=multi-user.target
 	\n"
+
+	if [[ -e ${systemdServiceDir} ]]; then
+	else
+		mkdir ${systemdServiceDir}
+	fi
 
 	echo -e ${serviceFile} > ${systemdServiceFile}
 
