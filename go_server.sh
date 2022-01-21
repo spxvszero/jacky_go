@@ -33,7 +33,9 @@ function addSystemdService(){
 	\n"
 
 	if [[ -e ${systemdServiceDir} ]]; then
+		echo "SystemService Dir Exist."
 	else
+		echo "SystemService Dir Not Exist. Create One. ${systemdServiceDir}"
 		mkdir ${systemdServiceDir}
 	fi
 
