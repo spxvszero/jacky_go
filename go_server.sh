@@ -26,6 +26,7 @@ function addSystemdService(){
 	\nAfter=network-online.target
 	\n\n[Service]
 	\nType=simple
+	\nWorkingDirectory=${curDir}
 	\nExecStart=${curDir}/${serverName} --config ${curDir}/${configFile}
 	\n\n[Install]
 	\nWantedBy=multi-user.target
