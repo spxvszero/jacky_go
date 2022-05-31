@@ -28,6 +28,7 @@ function addSystemdService(){
 	\nType=simple
 	\nWorkingDirectory=${curDir}
 	\nExecStart=${curDir}/${serverName} --config ${curDir}/${configFile}
+	\nRestart=on-failure
 	\n\n[Install]
 	\nWantedBy=multi-user.target
 	\n"
@@ -197,6 +198,51 @@ function updateServer(){
 function uninstallServer(){
 	removeFirewallService
 	removeSystemdService
+}
+
+function iptablesRules(){
+	#block scan 
+	iptables -N block-scan
+	iptables -A block-scan -p tcp —tcp-flags SYN,ACK,FIN,RST RST -m limit —limit 1/s -j RETURN
+	iptables -A block-scan -j DROP
+
+	#block bad port
+	badport="135,136,137,138,139,445"
+	iptables -A INPUT -p tcp -m multiport --dport $badport -j DROP
+	iptables -A INPUT -p udp -m multiport --dport $badport -j DROP
+
+	#block ddos
+	iptables -A INPUT -p tcp --dport 80 -m limit --limit 20/minute --limit-burst 100 -j ACCEPT
+	#portect more from ddos
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+	echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+	echo 0 > /proc/sys/net/ipv4/conf/all/accept_redirects
+	echo 0 > /proc/sys/net/ipv4/conf/all/accept_source_route
+	echo 1 > /proc/sys/net/ipv4/conf/all/rp_filter
+	echo 1 > /proc/sys/net/ipv4/conf/lo/rp_filter
+	echo 1 > /proc/sys/net/ipv4/conf/lo/arp_ignore
+	echo 2 > /proc/sys/net/ipv4/conf/lo/arp_announce
+	echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+	echo 2 > /proc/sys/net/ipv4/conf/all/arp_announce
+	echo 0 > /proc/sys/net/ipv4/icmp_echo_ignore_all
+	echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+	echo 30 > /proc/sys/net/ipv4/tcp_fin_timeout
+	echo 1800 > /proc/sys/net/ipv4/tcp_keepalive_time
+	echo 1 > /proc/sys/net/ipv4/tcp_window_scaling 
+	echo 0 > /proc/sys/net/ipv4/tcp_sack
+	echo 1280 > /proc/sys/net/ipv4/tcp_max_syn_backlog
+
+	#block smtp
+	iptables -A OUTPUT -p tcp --dport 25 -j DROP
+
+	#only accept ip to connect mysql port
+	iptables -A INPUT -p tcp -s 192.168.1.0/24 --dport 3306 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+	#block icmp(ping)
+	#outgoing
+	iptables -A OUTPUT -p icmp --icmp-type 8 -j DROP
+	#incoming
+	iptables -I INPUT -p icmp --icmp-type 8 -j DROP
 }
 
 function welcomeInfo(){
