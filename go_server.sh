@@ -1,6 +1,6 @@
 
 serverName="go_server"
-latestURL="https://github.com/spxvszero/jacky_go/releases/latest/download/go_export_jacky_go_linux"
+latestURL="https://github.com/spxvszero/jacky_go/releases/latest/download/go_export_jacky_go_linux_linux"
 
 curDir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 configFile="config.json"
@@ -243,6 +243,46 @@ function iptablesRules(){
 	iptables -A OUTPUT -p icmp --icmp-type 8 -j DROP
 	#incoming
 	iptables -I INPUT -p icmp --icmp-type 8 -j DROP
+}
+
+function addLaunchServiceOnMac(){
+workingDirectory="/Users"
+filePath="/Users/go_server"
+configFilePath="/Users/configFilePath"
+serviceName="com.jacky.goserver"
+plistFile="/Users/${serverName}.plist"
+echo "
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+	<key>Label</key>
+	<string>${serviceName}</string>
+	<key>ServiceDescription</key>
+	<string>Go server From jacky</string>
+	<key>RunAtLoad</key>
+	<string>false</string>
+	<key>WorkingDirectory</key>
+	<string>${workingDirectory}</string>
+	<key>MachServices</key>
+    <dict>
+         <key>${serviceName}</key>
+         <true/>
+    </dict>
+    <key>Program</key>
+    <string>${filePath}</string>
+    <key>ProgramArguments</key>
+        <array>
+            <string>go_server</string>
+            <string> --config ${configFilePath}</string>
+        </array>
+    <key>KeepAlive</key>
+    <true/> 
+</dict>
+</plist>
+" > plistFile
+	
+	launchctl load plistFile
 }
 
 function welcomeInfo(){
